@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Basic Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+        #map { height: 500px; width: 100%; }
+        .buttons { margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="buttons">
+        <button onclick="startDrawing()">Start Drawing Area</button>
+        <button onclick="finishDrawing()">Finish Drawing</button>
+        <button onclick="clearAll()">Clear All</button>
+    </div>
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+
+    <script>
+        let map, currentMarker, destinationMarker, routingControl;
+        let isDrawing = false;
+        let polygonPoints = [];
+        let polygon = null;
+
+        function initializeMap(lat, lng) {
+            map = L.map('map').setView([lat, lng], 13);  // Set fixed starting point
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            }).addTo(map);
+            
+            currentMarker = L.marker([lat, lng]).addTo(map);  // Add marker at starting point
+            
+            // Handle clicks for destination and drawing
+            map.on('click', function(e) {
+                if (isDrawing) {
+                    polygonPoints.push([e.latlng.lat, e.latlng.lng]);
+                    if (polygon) map.removeLayer(polygon);
+                    polygon = L.polygon(polygonPoints, { color: 'red' }).addTo(map);
+                } else {
+                    if (destinationMarker) map.removeLayer(destinationMarker);
+                    destinationMarker = L.marker(e.latlng).addTo(map);
+                    updateRoute();
+                }
+            });
+        }
+
+        function updateRoute() {
+            if (!destinationMarker) return;
+            if (routingControl) map.removeControl(routingControl);
+            routingControl = L.Routing.control({
+                waypoints: [currentMarker.getLatLng(), destinationMarker.getLatLng()],
+                routeWhileDragging: true
+            }).addTo(map);
+        }
+
+        function startDrawing() {
+            isDrawing = true;
+            polygonPoints = [];
+            if (polygon) map.removeLayer(polygon);
+        }
+
+        function finishDrawing() { isDrawing = false; }
+
+        function clearAll() {
+            if (destinationMarker) { 
+                map.removeLayer(destinationMarker); 
+                destinationMarker = null; 
+            }
+            if (routingControl) { 
+                map.removeControl(routingControl); 
+                routingControl = null; 
+            }
+            if (polygon) { 
+                map.removeLayer(polygon); 
+                polygon = null; 
+            }
+            polygonPoints = [];
+            isDrawing = false;
+        }
+
+        initializeMap(28.6139, 77.2090);  // Coordinates for Delhi 
+    </script>
+</body>
+</html>
