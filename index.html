@@ -20,7 +20,7 @@
     <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
 
     <script>
-        let map, currentMarker, destinationMarker, routingControl;
+        let map, currentMarker, destinationMarker, routingControl, midStop;
         let isDrawing = false;
         let polygonPoints = [];
         let polygon = null;
@@ -31,7 +31,7 @@
             }).addTo(map);
             
             currentMarker = L.marker([lat, lng]).addTo(map);  // Add marker at starting point
-            
+            midStop = L.marker([28.8139, 77.3090]).addTo(map); // Adds a static middle point between current and destination marker
             // Handle clicks for destination and drawing
             map.on('click', function(e) {
                 if (isDrawing) {
@@ -50,7 +50,7 @@
             if (!destinationMarker) return;
             if (routingControl) map.removeControl(routingControl);
             routingControl = L.Routing.control({
-                waypoints: [currentMarker.getLatLng(), destinationMarker.getLatLng()],
+                waypoints: [currentMarker.getLatLng(), midStop.getLatLng, destinationMarker.getLatLng()],
                 routeWhileDragging: true
             }).addTo(map);
         }
@@ -80,7 +80,7 @@
             isDrawing = false;
         }
 
-        initializeMap(28.6139, 77.2090);  // Coordinates for Delhi 
+        initializeMap(28.6139, 77.2090);  // Coordinates for Delhi(current marker)
     </script>
 </body>
 </html>
